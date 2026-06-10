@@ -1,58 +1,105 @@
-\documentclass[aspectratio=169,11pt]{beamer}
+\documentclass[aspectratio=169,10pt]{beamer}
 \usetheme{default}
 \setbeamertemplate{navigation symbols}{}
-\usepackage{graphicx}
-\usepackage[T1]{fontenc}
-\definecolor{ncsured}{HTML}{CC0000}
-\definecolor{ncsudk}{HTML}{990000}
+\usepackage{graphicx}\usepackage[T1]{fontenc}\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\definecolor{ncsured}{HTML}{CC0000}\definecolor{ncsudk}{HTML}{990000}
+\definecolor{ncsugray}{HTML}{6D6D6D}\definecolor{ncsuteal}{HTML}{008473}
+\definecolor{codebg}{HTML}{F5F5F5}
 \setbeamercolor{structure}{fg=ncsured}
 \setbeamercolor{frametitle}{fg=white,bg=ncsured}
 \setbeamercolor{title}{fg=ncsudk}
 \setbeamercolor{itemize item}{fg=ncsured}
 \setbeamercolor{itemize subitem}{fg=ncsured}
 \setbeamerfont{frametitle}{series=\bfseries}
-\setbeamertemplate{frametitle}{%
-  \nointerlineskip\vskip2pt%
-  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=0.3cm]{frametitle}%
-  \bfseries\insertframetitle%
-  \end{beamercolorbox}}
-\setbeamertemplate{footline}{%
-  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
-  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 5 \hfill \insertframenumber%
-  \end{beamercolorbox}}}
+\setbeamertemplate{frametitle}{\nointerlineskip\vskip2pt%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=.3cm]{frametitle}%
+  \small\bfseries\insertframetitle\end{beamercolorbox}}
+\setbeamertemplate{footline}{\hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
+  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 5 \hfill \insertframenumber\end{beamercolorbox}}}
+\lstset{basicstyle=\ttfamily\scriptsize,backgroundcolor=\color{codebg},
+  keywordstyle=\color{ncsured},commentstyle=\color{ncsugray},
+  stringstyle=\color{ncsuteal},breaklines=true,columns=fullflexible,
+  showstringspaces=false,frame=single,rulecolor=\color{ncsugray}}
 
 \title{Week 5: The Avellaneda-Stoikov Engine}
 \subtitle{Implementation, calibration, and backtest -- Milestone 1}
 \date{North Carolina State University \,\textbar\, Summer 2026}
 \titlegraphic{\includegraphics[width=4.2cm]{/Users/dendisuhubdy/Github/ncsu/assets/ncsu_logo.png}}
 \begin{document}
-\begin{frame}[plain]\titlepage
-\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  ·  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
+\begin{frame}[plain]\titlepage\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  |  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
 \begin{frame}{Learning Objectives}
 \begin{itemize}
-  \item Implement the quotes as a clean, tested PyTorch engine
-  \item Calibrate the order-flow intensities by maximum likelihood
-  \item Build an event-driven backtest and benchmark on Coincall data
-\end{itemize}\end{frame}
+  \item Implement the quotes as a tested PyTorch engine
+  \item Calibrate the fill intensities by maximum likelihood
+  \item Backtest on one month of Coincall BTC-PERP data
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Lecture 1: From Closed Form to Code}
 \begin{itemize}
-  \item Engine architecture; state management from the L2 book
-  \item Mapping continuous-time quantities to discrete events
-  \item Calibrating lambda(d) = A exp(-kappa d) from fill data
-  \item Pitfalls: units, cash-process sign, inventory indexing
-\end{itemize}\end{frame}
+  \item Engine architecture; state from the L2 book
+  \item Map continuous-time quantities to discrete events
+  \item Calibrate lambda(delta) = A exp(-kappa delta) from fills
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Lecture 2: Calibration \& Validation}
 \begin{itemize}
   \item Maximum-likelihood fit of A and kappa with goodness-of-fit
-  \item The backtest harness: replay, fill simulator, P\&L attribution
-  \item Validate the P\&L distribution against theory
+  \item Replay engine + fill simulator + P\&L attribution
   \item Reproducibility under a fixed seed
-\end{itemize}\end{frame}
-\begin{frame}{Milestone 1 Deliverable}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Illustration}
+\begin{center}\includegraphics[width=0.86\textwidth]{/Users/dendisuhubdy/Github/ncsu/weekly_presentations/figures/week05.png}\end{center}
+\end{frame}
+
+\section*{Derivation}
+\begin{frame}{Derivation \& Rationale}
+\[\mathcal{L}(A,\kappa)=\prod_i \lambda(\delta_i)\,e^{-\lambda(\delta_i)\,\Delta t_i}\]
+
+\small\textbf{\color{ncsured}Why:} Fills are a (doubly stochastic) Poisson process, so the likelihood of the observed fills given quote distances $\delta_i$ is a product of Poisson densities. We fit by MAXIMUM LIKELIHOOD rather than least-squares because the data are event counts, not Gaussian residuals.
+\end{frame}
+
+\begin{frame}{Derivation \& Rationale}
+\[-\ln\mathcal{L} = \sum_i\big[\lambda(\delta_i)\Delta t_i - \ln\lambda(\delta_i)\big]\]
+
+\small\textbf{\color{ncsured}Why:} Minimizing this negative log-likelihood is convex in $\ln A$ and well-behaved in $\kappa$; PyTorch autograd gives the gradients, so a few hundred Adam steps converge.
+\end{frame}
+
+\begin{frame}{Getting the Data from Coincall}
 \begin{itemize}
-  \item Python/PyTorch Avellaneda-Stoikov package on one linear asset
-  \item Calibration + simulation + one-month BTC-PERP backtest
-  \item Acceptance: quotes match closed form; P\&L within +/-50\% of reference
-  \item pytest coverage; report \textless{}= 10 pages
-\end{itemize}\end{frame}
+  \item Build the intensity-calibration set from trades vs. your quotes:
+  \begin{itemize}\item \texttt{\small Trades:  GET /open/option/trade/lasttrade/v1/\{symbol\}  (or trade history)}\end{itemize}
+  \begin{itemize}\item \texttt{\small Book:    GET /open/futures/order/orderbook/v1/\{symbol\}  for the mid}\end{itemize}
+  \item Offline: coincall\_btc\_perp\_trades\_2025Q4.parquet + ...\_l2\_2025Q4.parquet
+  \item A pre-aggregated coincall\_intensity\_calibration\_set.parquet is provided
+  \item delta\_i = |fill price - mid at fill|; group fills by delta bucket for the MLE
+\end{itemize}
+\vspace{2pt}\tiny\textit{Cross-check exact paths at https://docs.coincall.com/}
+\end{frame}
+
+\begin{frame}[fragile]{Code --- week5\_calibrate.py}
+\begin{lstlisting}
+import torch
+# delta: quote distances at which fills occurred; dt: exposure time per fill
+delta = torch.tensor([...]); dt = torch.tensor([...])
+logA  = torch.zeros(1, requires_grad=True)
+kappa = torch.ones(1,  requires_grad=True)
+opt = torch.optim.Adam([logA, kappa], lr=0.05)
+for step in range(2000):
+    lam = torch.exp(logA) * torch.exp(-kappa.clamp(min=1e-3) * delta)
+    nll = (lam * dt - torch.log(lam)).sum()          # Poisson negative log-lik
+    opt.zero_grad(); nll.backward(); opt.step()
+print("A =", torch.exp(logA).item(), " kappa =", kappa.item())
+\end{lstlisting}
+\end{frame}
+\begin{frame}{Reading}
+\begin{itemize}
+  \item Avellaneda-Stoikov (2008) [implementation]; Gueant (2016), Ch. 4
+\end{itemize}
+\end{frame}
+
 \end{document}

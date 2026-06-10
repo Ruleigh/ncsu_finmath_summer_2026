@@ -1,57 +1,104 @@
-\documentclass[aspectratio=169,11pt]{beamer}
+\documentclass[aspectratio=169,10pt]{beamer}
 \usetheme{default}
 \setbeamertemplate{navigation symbols}{}
-\usepackage{graphicx}
-\usepackage[T1]{fontenc}
-\definecolor{ncsured}{HTML}{CC0000}
-\definecolor{ncsudk}{HTML}{990000}
+\usepackage{graphicx}\usepackage[T1]{fontenc}\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\definecolor{ncsured}{HTML}{CC0000}\definecolor{ncsudk}{HTML}{990000}
+\definecolor{ncsugray}{HTML}{6D6D6D}\definecolor{ncsuteal}{HTML}{008473}
+\definecolor{codebg}{HTML}{F5F5F5}
 \setbeamercolor{structure}{fg=ncsured}
 \setbeamercolor{frametitle}{fg=white,bg=ncsured}
 \setbeamercolor{title}{fg=ncsudk}
 \setbeamercolor{itemize item}{fg=ncsured}
 \setbeamercolor{itemize subitem}{fg=ncsured}
 \setbeamerfont{frametitle}{series=\bfseries}
-\setbeamertemplate{frametitle}{%
-  \nointerlineskip\vskip2pt%
-  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=0.3cm]{frametitle}%
-  \bfseries\insertframetitle%
-  \end{beamercolorbox}}
-\setbeamertemplate{footline}{%
-  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
-  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 8 \hfill \insertframenumber%
-  \end{beamercolorbox}}}
+\setbeamertemplate{frametitle}{\nointerlineskip\vskip2pt%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=.3cm]{frametitle}%
+  \small\bfseries\insertframetitle\end{beamercolorbox}}
+\setbeamertemplate{footline}{\hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
+  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 8 \hfill \insertframenumber\end{beamercolorbox}}}
+\lstset{basicstyle=\ttfamily\scriptsize,backgroundcolor=\color{codebg},
+  keywordstyle=\color{ncsured},commentstyle=\color{ncsugray},
+  stringstyle=\color{ncsuteal},breaklines=true,columns=fullflexible,
+  showstringspaces=false,frame=single,rulecolor=\color{ncsugray}}
 
-\title{Week 8: Options Market Making Theory and Dynamic Hedging}
-\subtitle{Avellaneda-Stoikov with a vector-valued inventory}
+\title{Week 8: Options Market Making \& Dynamic Hedging}
+\subtitle{Avellaneda-Stoikov with a vector-valued (Greek) inventory}
 \date{North Carolina State University \,\textbar\, Summer 2026}
 \titlegraphic{\includegraphics[width=4.2cm]{/Users/dendisuhubdy/Github/ncsu/assets/ncsu_logo.png}}
 \begin{document}
-\begin{frame}[plain]\titlepage
-\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  ·  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
+\begin{frame}[plain]\titlepage\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  |  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
 \begin{frame}{Learning Objectives}
 \begin{itemize}
   \item Set up the El Aoud-Abergel multi-Greek framework
-  \item Understand the inventory penalty as a quadratic form
-  \item Quantify the P\&L attribution of a hedged options book
-\end{itemize}\end{frame}
+  \item Understand the quadratic inventory penalty
+  \item Quantify the P\&L of a delta-hedged book
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Lecture 1: Multi-Greek Inventory \& HJB}
 \begin{itemize}
-  \item Inventory becomes a vector of Greeks (delta, gamma, vega, ...)
-  \item Quadratic inventory penalty and its economic meaning
-  \item The multi-Greek HJB and separation ansatz
-  \item Reduces to Avellaneda-Stoikov in the 1-D case
-\end{itemize}\end{frame}
+  \item Inventory becomes a vector q = (Delta, Gamma, vega, ...)
+  \item Quadratic inventory penalty; reduces to AS in 1-D
+  \item Multi-Greek HJB and the separation ansatz
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Lecture 2: Dynamic Hedging}
 \begin{itemize}
-  \item Continuous and discrete delta hedging
-  \item The gamma-theta-variance identity (the key to options trading)
-  \item External vs. integrated hedging architectures
-  \item Perpetual futures as the hedge instrument; funding cost
-\end{itemize}\end{frame}
-\begin{frame}{Recitation \& Problem Set 8 (Python/PyTorch)}
+  \item Continuous vs discrete delta hedging
+  \item The gamma-theta-variance identity
+  \item Perp futures as the hedge instrument; funding cost
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Illustration}
+\begin{center}\includegraphics[width=0.86\textwidth]{/Users/dendisuhubdy/Github/ncsu/weekly_presentations/figures/week08.png}\end{center}
+\end{frame}
+
+\section*{Derivation}
+\begin{frame}{Derivation \& Rationale}
+\[\text{penalty} = \tfrac12\, q^{\mathsf T} \Sigma\, q\]
+
+\small\textbf{\color{ncsured}Why:} Inventory risk for an options book is multi-dimensional (delta, gamma, vega...). A quadratic form is the local (mean-variance) risk of the Greek vector; $\Sigma$ is calibrated to the empirical covariance of the Greeks, so cross-risks are priced, not just diagonal ones. It reduces to AS's $q^2$ penalty when there is one Greek.
+\end{frame}
+
+\begin{frame}{Derivation \& Rationale}
+\[d\Pi = \tfrac12\,\Gamma\,S^2\big(\sigma_{\text{real}}^2-\sigma_{\text{impl}}^2\big)\,dt\]
+
+\small\textbf{\color{ncsured}Why:} The gamma-theta-variance identity: a delta-hedged option earns (or pays) the gap between realized and implied variance, scaled by dollar gamma. This single equation explains ~80% of a hedged book's daily P&L and motivates why we track gamma at all.
+\end{frame}
+
+\begin{frame}{Getting the Data from Coincall}
 \begin{itemize}
-  \item Multi-Greek HJB walk-through; PyTorch hedged-book simulation
-  \item PS8: inventory dynamics, penalty calibration, threshold hedger
-  \item Reading: El Aoud-Abergel (2015); Taleb (1997)
-\end{itemize}\end{frame}
+  \item Greeks per contract (for the inventory vector and Sigma):
+  \begin{itemize}\item \texttt{\small GET /open/option/detail/v1/\{symbol\}  -\textgreater{} delta, gamma, vega, theta, rho}\end{itemize}
+  \item Hedge instrument + carry:
+  \begin{itemize}\item \texttt{\small Perp book:  GET /open/futures/order/orderbook/v1/\{symbol\}}\end{itemize}
+  \begin{itemize}\item \texttt{\small Funding:    GET /open/public/fundingRate/v1?symbol=BTCUSD}\end{itemize}
+  \item Offline: coincall\_funding\_rates\_2025Q4.parquet for hedge-cost accounting
+\end{itemize}
+\vspace{2pt}\tiny\textit{Cross-check exact paths at https://docs.coincall.com/}
+\end{frame}
+
+\begin{frame}[fragile]{Code --- week8\_hedge.py}
+\begin{lstlisting}
+import torch
+def book_greeks(positions, greeks):
+    # positions: (n,), greeks: (n,5) columns [delta,gamma,vega,theta,rho]
+    return (positions[:, None] * greeks).sum(0)      # aggregate inventory vector
+
+def delta_hedge(net_delta, perp_pos, threshold=0.1):
+    if net_delta.abs() > threshold:                  # rebalance only when breached
+        trade = -net_delta                           # hedge with perp futures
+        return perp_pos + trade, trade
+    return perp_pos, torch.tensor(0.0)
+\end{lstlisting}
+\end{frame}
+\begin{frame}{Reading}
+\begin{itemize}
+  \item El Aoud-Abergel (2015); Taleb (1997); Cartea et al., Ch. 11
+\end{itemize}
+\end{frame}
+
 \end{document}

@@ -1,57 +1,108 @@
-\documentclass[aspectratio=169,11pt]{beamer}
+\documentclass[aspectratio=169,10pt]{beamer}
 \usetheme{default}
 \setbeamertemplate{navigation symbols}{}
-\usepackage{graphicx}
-\usepackage[T1]{fontenc}
-\definecolor{ncsured}{HTML}{CC0000}
-\definecolor{ncsudk}{HTML}{990000}
+\usepackage{graphicx}\usepackage[T1]{fontenc}\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\definecolor{ncsured}{HTML}{CC0000}\definecolor{ncsudk}{HTML}{990000}
+\definecolor{ncsugray}{HTML}{6D6D6D}\definecolor{ncsuteal}{HTML}{008473}
+\definecolor{codebg}{HTML}{F5F5F5}
 \setbeamercolor{structure}{fg=ncsured}
 \setbeamercolor{frametitle}{fg=white,bg=ncsured}
 \setbeamercolor{title}{fg=ncsudk}
 \setbeamercolor{itemize item}{fg=ncsured}
 \setbeamercolor{itemize subitem}{fg=ncsured}
 \setbeamerfont{frametitle}{series=\bfseries}
-\setbeamertemplate{frametitle}{%
-  \nointerlineskip\vskip2pt%
-  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=0.3cm]{frametitle}%
-  \bfseries\insertframetitle%
-  \end{beamercolorbox}}
-\setbeamertemplate{footline}{%
-  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
-  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 6 \hfill \insertframenumber%
-  \end{beamercolorbox}}}
+\setbeamertemplate{frametitle}{\nointerlineskip\vskip2pt%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=.3cm]{frametitle}%
+  \small\bfseries\insertframetitle\end{beamercolorbox}}
+\setbeamertemplate{footline}{\hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
+  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 6 \hfill \insertframenumber\end{beamercolorbox}}}
+\lstset{basicstyle=\ttfamily\scriptsize,backgroundcolor=\color{codebg},
+  keywordstyle=\color{ncsured},commentstyle=\color{ncsugray},
+  stringstyle=\color{ncsuteal},breaklines=true,columns=fullflexible,
+  showstringspaces=false,frame=single,rulecolor=\color{ncsugray}}
 
-\title{Week 6: Options Pricing, the Volatility Surface, and Calibration}
-\subtitle{Building a volatility surface from messy crypto data}
+\title{Week 6: Options Pricing \& the Volatility Surface}
+\subtitle{Greeks, no-arbitrage, and SVI/SABR calibration}
 \date{North Carolina State University \,\textbar\, Summer 2026}
 \titlegraphic{\includegraphics[width=4.2cm]{/Users/dendisuhubdy/Github/ncsu/assets/ncsu_logo.png}}
 \begin{document}
-\begin{frame}[plain]\titlepage
-\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  ·  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
+\begin{frame}[plain]\titlepage\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  |  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
 \begin{frame}{Learning Objectives}
 \begin{itemize}
   \item Recall the Greeks, including vanna and volga
-  \item State the no-arbitrage constraints on the vol surface
-  \item Calibrate SVI and SABR with attention to stability
-\end{itemize}\end{frame}
+  \item State the no-arbitrage constraints on the surface
+  \item Calibrate SVI and SABR to Coincall data
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Lecture 1: Greeks \& the Surface}
 \begin{itemize}
   \item Black-Scholes and the Greek vector
   \item Vanna, volga, and volatility risk
-  \item The implied-vol smile and term structure
-  \item Calendar and butterfly arbitrage
-\end{itemize}\end{frame}
+  \item Calendar and butterfly arbitrage constraints
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Lecture 2: SVI \& SABR Calibration}
 \begin{itemize}
-  \item Raw SVI and the arbitrage-free formulation
-  \item SVI calibration by nonlinear least squares
-  \item The SABR formula and the Hagan expansion
-  \item Time-stability of calibrated parameters
-\end{itemize}\end{frame}
-\begin{frame}{Recitation \& Problem Set 6 (Python/PyTorch)}
+  \item Raw and arbitrage-free SVI
+  \item SVI by nonlinear least squares (autograd Jacobians)
+  \item The SABR / Hagan expansion
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Illustration}
+\begin{center}\includegraphics[width=0.86\textwidth]{/Users/dendisuhubdy/Github/ncsu/weekly_presentations/figures/week06.png}\end{center}
+\end{frame}
+
+\section*{Derivation}
+\begin{frame}{Derivation \& Rationale}
+\[w(k)=a+b\big(\rho(k-m)+\sqrt{(k-m)^2+\varsigma^2}\big)\]
+
+\small\textbf{\color{ncsured}Why:} Raw SVI for total implied variance $w=\sigma^2 T$ in log-moneyness $k$. The hyperbola shape is chosen because it matches observed smiles with only 5 parameters and has closed-form slopes for the no-arbitrage checks.
+\end{frame}
+
+\begin{frame}{Derivation \& Rationale}
+\[\text{butterfly: } g(k)\ge 0,\qquad \text{calendar: } \partial_T w(k,T)\ge 0\]
+
+\small\textbf{\color{ncsured}Why:} These inequalities are exactly 'no free option-portfolio arbitrage': a negative $g(k)$ implies a negative risk-neutral density, and decreasing total variance in $T$ implies a calendar arbitrage. We enforce them so the fitted surface is tradeable.
+\end{frame}
+
+\begin{frame}{Getting the Data from Coincall}
 \begin{itemize}
-  \item Live calibration in PyTorch (autograd Jacobians)
-  \item PS6: BS Greeks via autograd, SVI/SABR fits, stability study
-  \item Reading: Gatheral (2006); Gatheral-Jacquier (2014); Hagan et al.
-\end{itemize}\end{frame}
+  \item Pull a full option chain with mark IV and Greeks per strike:
+  \begin{itemize}\item \texttt{\small Chain:   GET /open/option/get/v1/\{index\}        (index = BTC/ETH underlying)}\end{itemize}
+  \begin{itemize}\item \texttt{\small Detail:  GET /open/option/detail/v1/\{symbol\}    (mark, IV, delta/gamma/vega/theta/rho)}\end{itemize}
+  \begin{itemize}\item \texttt{\small Symbols: GET /open/option/getInstruments/BTC}\end{itemize}
+  \item Offline: coincall\_btc\_options\_chain\_snapshots\_2025Q4.parquet (5-min snapshots)
+  \item A baseline coincall\_calibrated\_svi\_surfaces\_2025Q4.parquet is provided
+\end{itemize}
+\vspace{2pt}\tiny\textit{Cross-check exact paths at https://docs.coincall.com/}
+\end{frame}
+
+\begin{frame}[fragile]{Code --- week6\_bs\_autograd.py}
+\begin{lstlisting}
+import torch
+def bs_call(S, K, T, r, sig):
+    d1 = (torch.log(S/K) + (r + 0.5*sig**2)*T) / (sig*torch.sqrt(T))
+    d2 = d1 - sig*torch.sqrt(T)
+    N = torch.distributions.Normal(0., 1.).cdf
+    return S*N(d1) - K*torch.exp(-r*T)*N(d2)
+
+S,K,T,r,sig = [torch.tensor(x, requires_grad=True)
+               for x in (100., 100., 1.0, 0.0, 0.6)]   # crypto IV ~ 60%
+price = bs_call(S,K,T,r,sig)
+vega,  = torch.autograd.grad(price, sig, create_graph=True)
+vanna, = torch.autograd.grad(vega, S, create_graph=True)   # d vega / dS
+volga, = torch.autograd.grad(vega, sig)                    # d vega / d sig
+print(float(price), float(vega), float(vanna), float(volga))
+\end{lstlisting}
+\end{frame}
+\begin{frame}{Reading}
+\begin{itemize}
+  \item Gatheral (2006), Ch. 1-5; Gatheral-Jacquier (2014); Hagan et al. (2002)
+\end{itemize}
+\end{frame}
+
 \end{document}

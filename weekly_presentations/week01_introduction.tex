@@ -1,74 +1,160 @@
-\documentclass[aspectratio=169,11pt]{beamer}
+\documentclass[aspectratio=169,10pt]{beamer}
 \usetheme{default}
 \setbeamertemplate{navigation symbols}{}
-\usepackage{graphicx}
-\usepackage[T1]{fontenc}
-\definecolor{ncsured}{HTML}{CC0000}
-\definecolor{ncsudk}{HTML}{990000}
+\usepackage{graphicx}\usepackage[T1]{fontenc}\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\definecolor{ncsured}{HTML}{CC0000}\definecolor{ncsudk}{HTML}{990000}
+\definecolor{ncsugray}{HTML}{6D6D6D}\definecolor{ncsuteal}{HTML}{008473}
+\definecolor{codebg}{HTML}{F5F5F5}
 \setbeamercolor{structure}{fg=ncsured}
 \setbeamercolor{frametitle}{fg=white,bg=ncsured}
 \setbeamercolor{title}{fg=ncsudk}
 \setbeamercolor{itemize item}{fg=ncsured}
 \setbeamercolor{itemize subitem}{fg=ncsured}
 \setbeamerfont{frametitle}{series=\bfseries}
-\setbeamertemplate{frametitle}{%
-  \nointerlineskip\vskip2pt%
-  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=0.3cm]{frametitle}%
-  \bfseries\insertframetitle%
-  \end{beamercolorbox}}
-\setbeamertemplate{footline}{%
-  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
-  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 1 \hfill \insertframenumber%
-  \end{beamercolorbox}}}
+\setbeamertemplate{frametitle}{\nointerlineskip\vskip2pt%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=.3cm]{frametitle}%
+  \small\bfseries\insertframetitle\end{beamercolorbox}}
+\setbeamertemplate{footline}{\hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
+  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 1 \hfill \insertframenumber\end{beamercolorbox}}}
+\lstset{basicstyle=\ttfamily\scriptsize,backgroundcolor=\color{codebg},
+  keywordstyle=\color{ncsured},commentstyle=\color{ncsugray},
+  stringstyle=\color{ncsuteal},breaklines=true,columns=fullflexible,
+  showstringspaces=false,frame=single,rulecolor=\color{ncsugray}}
 
-\title{Week 1: Introduction}
-\subtitle{Program overview, tooling, and data}
+\title{Week 1: Introduction \& Progress Review}
+\subtitle{Roadmap, deliverables, grading, data sources, and resources}
 \date{North Carolina State University \,\textbar\, Summer 2026}
 \titlegraphic{\includegraphics[width=4.2cm]{/Users/dendisuhubdy/Github/ncsu/assets/ncsu_logo.png}}
 \begin{document}
-\begin{frame}[plain]\titlepage
-\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  ·  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
-\begin{frame}{Welcome to the Program}
+\begin{frame}[plain]\titlepage\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  |  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
+\begin{frame}{Learning Objectives}
 \begin{itemize}
-  \item A 10-week summer research program on optimal market making for crypto options
-  \item Goal: design, implement, and evaluate quoting strategies on real Coincall data
-  \item You will produce a research-grade report and a working code repository
-  \item This week: orientation, environment setup, and data access
-\end{itemize}\end{frame}
-\begin{frame}{Maker vs. Taker}
+  \item Understand the arc of the program and what you will build
+  \item Be clear on the timeline, the three milestones, and how you are graded
+  \item Know where the data comes from (Coincall) and how to pull it
+  \item Have the Python + PyTorch and C++/pybind11 toolchains running
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Where We Are (Week 1 Progress Review)}
 \begin{itemize}
-  \item A market maker continuously quotes both sides and earns the spread
-  \item A taker crosses the spread to execute immediately
-  \item We build the maker's side; in Week 9 a Coincall practitioner covers taker strategies
-  \item The spread is compensation for committing to quotes under uncertainty
-\end{itemize}\end{frame}
-\begin{frame}{The Spine: Avellaneda-Stoikov}
+  \item Maker vs. taker: we build the MAKER -- continuously quoting both sides
+  \item The spine of the course is the Avellaneda-Stoikov model
+  \item Week 1 status: environment setup, data access, and this orientation
+  \item By Week 5 you ship a calibrated quoting engine (Milestone 1)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Tooling \& How to Get Help}
 \begin{itemize}
-  \item The whole course is organized around the Avellaneda-Stoikov framework
-  \item Introduced Week 3; turned into a calibrated engine Week 5
-  \item Extended to multi-Greek options inventory Week 8
-  \item Advanced extensions (multi-asset, adverse selection, robust) in Week 10
-\end{itemize}\end{frame}
-\begin{frame}{Tooling}
+  \item Problem sets: Python + PyTorch (autograd does differentiation for you)
+  \item Fast computation (Week 7): C++ exposed to Python via pybind11
+  \item Mentorship is asynchronous (email/Telegram); tutors run day-to-day
+  \item Office hours with tutors; come with a minimal reproducible snippet
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Timeline \& Deliverable Clarification}
 \begin{itemize}
-  \item Problem sets: Python + PyTorch (autograd does the differentiation for you)
-  \item You will NOT hand-roll algorithmic differentiation
-  \item Fast-computation week (Week 7): C++ exposed to Python via pybind11
-  \item Industry pattern: Python for research, C++ for the hot path
-\end{itemize}\end{frame}
-\begin{frame}{Data, Milestones, Assessment}
+  \item 10 weeks. Week 1 introduction (done). Weeks 2-10 technical.
+  \item Milestone 1 (Wk 5): Avellaneda-Stoikov engine, Python/PyTorch
+  \item Milestone 2 (Wk 7): fast pricing/Greeks library, C++ via pybind11
+  \item Milestone 3 (Wk 9): full options market-making backtest
+  \item Final (Wk 10): one advanced extension + report (\textless{}=30pp) + 20-min talk
+  \item Problem sets are due Sunday 23:59 ET; milestones Friday of the week
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Syllabus \& Grading Walkthrough}
 \begin{itemize}
-  \item Coincall BTC/ETH order books, trades, options chains, funding rates
-  \item Milestone 1 (Wk5): Avellaneda-Stoikov engine
-  \item Milestone 2 (Wk7): fast pricing \& Greeks library
-  \item Milestone 3 (Wk9): full options market-making backtest
-  \item Grade: problem sets 30\%, milestones 30\%, final 30\%, participation 10\%
-\end{itemize}\end{frame}
-\begin{frame}{This Week's To-Do}
+  \item Problem sets 30\%  |  Milestones (3) 30\%  |  Final 30\%  |  Participation 10\%
+  \item Code graded on correctness, reproducibility, quality -- in that order
+  \item Numerical-verification problems: right setup + right error magnitude
+  \item Milestone 2 latency is a HARD GATE (sub-5ms surface) -- caps at 70 if missed
+  \item Late PS: -20\% until Tue; nothing after. Milestones: no late submission.
+  \item Set random seeds: reproducibility is explicitly graded
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Data Sources Discussion (Coincall)}
 \begin{itemize}
-  \item Set up Python + PyTorch and a C++17 toolchain with CMake
-  \item Build and import the pybind11 'hello world' starter module
-  \item Get your Coincall data credentials and sign the data-use agreement
-  \item No graded problem set this week
-\end{itemize}\end{frame}
+  \item Exchange: Coincall.  REST base: https://api.coincall.com
+  \item Provided as Parquet: BTC/ETH options L2 + trades, perp L2, funding, SVI
+  \item Coincall orderbook is L2 (aggregated depth) -- there is NO L3 feed
+  \item You can also pull live via the REST/WebSocket API (next slides)
+  \item Auth: API key + HMAC-SHA256 signature; market data is largely public
+  \item Always cross-check exact endpoints at https://docs.coincall.com/
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Additional Resources -- Math-Heavy Sections}
+\begin{itemize}
+  \item Stochastic control: Pham (2009), Ch. 3-4 (HJB, verification)
+  \item Market making theory: Gueant (2016), Ch. 4; Cartea et al., Ch. 10-11
+  \item Options/vol surface: Gatheral (2006); Gatheral-Jacquier (2014)
+  \item Hedging: Taleb (1997), gamma scalping \& the gamma-theta identity
+  \item El Aoud-Abergel (2015): multi-Greek option market making (Week 8)
+  \item We DERIVE the key results in lecture and explain every modeling choice
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Illustration}
+\begin{center}\includegraphics[width=0.86\textwidth]{/Users/dendisuhubdy/Github/ncsu/weekly_presentations/figures/week01.png}\end{center}
+\end{frame}
+
+\begin{frame}{Getting the Data from Coincall}
+\begin{itemize}
+  \item Base URL: https://api.coincall.com   |   Python SDK: github.com/CoincallExchange
+  \item Signed request headers: X-CC-APIKEY, sign (HMAC-SHA256, upper hex), ts (ms), X-REQ-TS-DIFF
+  \item Signing: sort params alphabetically, append uuid, ts, x-req-ts-diff, HMAC-SHA256 with secret
+  \item Rate limits (per docs): orderbook 30/2s per user; public config 10/2s per IP
+  \item Key endpoints you will use across the program:
+  \begin{itemize}\item \texttt{\small Instruments:   GET /open/option/getInstruments/\{baseCurrency\}}\end{itemize}
+  \begin{itemize}\item \texttt{\small Option chain:  GET /open/option/get/v1/\{index\}}\end{itemize}
+  \begin{itemize}\item \texttt{\small Option book:   GET /open/option/order/orderbook/v1/\{symbol\}  (100 depth)}\end{itemize}
+  \begin{itemize}\item \texttt{\small Option detail: GET /open/option/detail/v1/\{symbol\}  (mark, IV, delta/gamma/vega/theta)}\end{itemize}
+  \begin{itemize}\item \texttt{\small Trades:        GET /open/option/trade/lasttrade/v1/\{symbol\}}\end{itemize}
+  \begin{itemize}\item \texttt{\small Futures book:  GET /open/futures/order/orderbook/v1/\{symbol\}}\end{itemize}
+  \begin{itemize}\item \texttt{\small Funding:       GET /open/public/fundingRate/v1?symbol=BTCUSD}\end{itemize}
+  \begin{itemize}\item \texttt{\small Klines:        GET /open/option/market/kline/history/v1/\{optionName\}?period=h1}\end{itemize}
+  \item WebSocket channels: /options/pricing, /options/orderbook, /options/lasttrade, /options/kline
+  \item ALWAYS verify the exact path/params against https://docs.coincall.com/ -- the API evolves.
+\end{itemize}
+\vspace{2pt}\tiny\textit{Cross-check exact paths at https://docs.coincall.com/}
+\end{frame}
+
+\begin{frame}[fragile]{Code --- coincall\_client.py}
+\begin{lstlisting}
+import time, hmac, hashlib, uuid, requests
+
+BASE = "https://api.coincall.com"
+
+def signed_get(path, params=None, api_key="", api_secret=""):
+    """Minimal Coincall signed GET. Public market-data endpoints often work
+    unsigned; this shows the signed pattern used for account endpoints."""
+    params = params or {}
+    ts, window = str(int(time.time() * 1000)), "5000"
+    items = sorted(params.items())                       # sort alphabetically
+    payload = "&".join(f"{k}={v}" for k, v in items)
+    payload += f"&uuid={uuid.uuid4().hex}&ts={ts}&x-req-ts-diff={window}"
+    sign = hmac.new(api_secret.encode(), payload.encode(),
+                    hashlib.sha256).hexdigest().upper()
+    headers = {"X-CC-APIKEY": api_key, "sign": sign,
+               "ts": ts, "X-REQ-TS-DIFF": window}
+    r = requests.get(BASE + path, params=params, headers=headers, timeout=10)
+    r.raise_for_status()
+    return r.json()
+
+# Example: list all BTC option instruments
+print(signed_get("/open/option/getInstruments/BTC"))
+\end{lstlisting}
+\end{frame}
+\begin{frame}{Reading}
+\begin{itemize}
+  \item Cartea-Jaikumar-Penalva, Ch. 1; Avellaneda-Stoikov (2008) -- skim
+  \item Coincall API docs: https://docs.coincall.com/  (read 'Getting Started')
+\end{itemize}
+\end{frame}
+
 \end{document}

@@ -1,62 +1,115 @@
-\documentclass[aspectratio=169,11pt]{beamer}
+\documentclass[aspectratio=169,10pt]{beamer}
 \usetheme{default}
 \setbeamertemplate{navigation symbols}{}
-\usepackage{graphicx}
-\usepackage[T1]{fontenc}
-\definecolor{ncsured}{HTML}{CC0000}
-\definecolor{ncsudk}{HTML}{990000}
+\usepackage{graphicx}\usepackage[T1]{fontenc}\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\definecolor{ncsured}{HTML}{CC0000}\definecolor{ncsudk}{HTML}{990000}
+\definecolor{ncsugray}{HTML}{6D6D6D}\definecolor{ncsuteal}{HTML}{008473}
+\definecolor{codebg}{HTML}{F5F5F5}
 \setbeamercolor{structure}{fg=ncsured}
 \setbeamercolor{frametitle}{fg=white,bg=ncsured}
 \setbeamercolor{title}{fg=ncsudk}
 \setbeamercolor{itemize item}{fg=ncsured}
 \setbeamercolor{itemize subitem}{fg=ncsured}
 \setbeamerfont{frametitle}{series=\bfseries}
-\setbeamertemplate{frametitle}{%
-  \nointerlineskip\vskip2pt%
-  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=0.3cm]{frametitle}%
-  \bfseries\insertframetitle%
-  \end{beamercolorbox}}
-\setbeamertemplate{footline}{%
-  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
-  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 4 \hfill \insertframenumber%
-  \end{beamercolorbox}}}
+\setbeamertemplate{frametitle}{\nointerlineskip\vskip2pt%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=.3cm]{frametitle}%
+  \small\bfseries\insertframetitle\end{beamercolorbox}}
+\setbeamertemplate{footline}{\hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
+  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 4 \hfill \insertframenumber\end{beamercolorbox}}}
+\lstset{basicstyle=\ttfamily\scriptsize,backgroundcolor=\color{codebg},
+  keywordstyle=\color{ncsured},commentstyle=\color{ncsugray},
+  stringstyle=\color{ncsuteal},breaklines=true,columns=fullflexible,
+  showstringspaces=false,frame=single,rulecolor=\color{ncsugray}}
 
-\title{Week 4: Stochastic Optimal Control in Continuous Time}
-\subtitle{The general theory behind the worked example}
+\title{Week 4: Stochastic Optimal Control}
+\subtitle{The general theory behind the Avellaneda-Stoikov worked example}
 \date{North Carolina State University \,\textbar\, Summer 2026}
 \titlegraphic{\includegraphics[width=4.2cm]{/Users/dendisuhubdy/Github/ncsu/assets/ncsu_logo.png}}
 \begin{document}
-\begin{frame}[plain]\titlepage
-\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  ·  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
+\begin{frame}[plain]\titlepage\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  |  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
 \begin{frame}{Learning Objectives}
 \begin{itemize}
   \item Apply the dynamic programming principle in continuous time
   \item Understand the HJB equation and the verification theorem
-  \item See why CARA and CRRA utilities give tractable problems
-\end{itemize}\end{frame}
+  \item See why CARA / CRRA utilities give tractable problems
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Lecture 1: Dynamic Programming \& HJB}
 \begin{itemize}
   \item Controlled diffusions and admissible controls
-  \item The dynamic programming principle
-  \item The infinitesimal generator
-  \item Deriving the HJB equation; boundary/terminal conditions
-\end{itemize}\end{frame}
+  \item The dynamic programming principle (Bellman)
+  \item The infinitesimal generator and the HJB equation
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Lecture 2: Verification \& Utilities}
 \begin{itemize}
-  \item The verification theorem: a smooth HJB solution IS the value function
-  \item Viscosity solutions: when value functions are non-smooth
-  \item CARA vs. CRRA vs. HARA
-  \item Why CARA decouples the value function from wealth
-\end{itemize}\end{frame}
-\begin{frame}{Recitation}
+  \item Verification theorem: a smooth HJB solution IS the value function
+  \item CARA vs CRRA: where wealth enters the optimal policy
+  \item Why market making uses CARA
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Illustration}
+\begin{center}\includegraphics[width=0.86\textwidth]{/Users/dendisuhubdy/Github/ncsu/weekly_presentations/figures/week04.png}\end{center}
+\end{frame}
+
+\section*{Derivation}
+\begin{frame}{Derivation \& Rationale}
+\[V(t,x)=\sup_{u}\ \mathbb{E}\!\left[\int_t^T f(s,X_s,u_s)\,ds + g(X_T)\right]\]
+
+\small\textbf{\color{ncsured}Why:} The value function is the best achievable expected reward from $(t,x)$ onward. We define the whole problem through $V$ because Bellman's principle then gives a local (differential) equation instead of an intractable global optimization.
+\end{frame}
+
+\begin{frame}{Derivation \& Rationale}
+\[V(t,x)=\sup_u \mathbb{E}\big[V(t{+}dt, X_{t+dt}) + f\,dt\big]\]
+
+\small\textbf{\color{ncsured}Why:} The dynamic programming principle: an optimal policy is optimal from every later state too. Expanding $V(t+dt,\cdot)$ with Ito's lemma turns this into the HJB PDE.
+\end{frame}
+
+\begin{frame}{Derivation \& Rationale}
+\[\partial_t V + \sup_{u}\big\{\mathcal{L}^u V + f(t,x,u)\big\}=0,\quad V(T,x)=g(x)\]
+
+\small\textbf{\color{ncsured}Why:} The HJB equation. $\mathcal{L}^u$ is the generator of the controlled diffusion; the $\sup$ is the instantaneous optimal control. This is the engine behind every model in the course -- Avellaneda-Stoikov is one special case.
+\end{frame}
+
+\begin{frame}{Derivation \& Rationale}
+\[\text{CARA: } U(w)=-e^{-\gamma w}\ \Rightarrow\ \text{policy independent of } w\]
+
+\small\textbf{\color{ncsured}Why:} Constant absolute risk aversion makes marginal utility scale-free in wealth, so the optimal quotes do not move with the cash balance. CRRA ($U=w^{1-\gamma}/(1-\gamma)$) instead makes the policy scale WITH wealth -- natural for investment, awkward for a desk.
+\end{frame}
+
+\begin{frame}{Getting the Data from Coincall}
 \begin{itemize}
-  \item Solve the Merton problem under CARA, then CRRA
-  \item Compare the two solutions side by side
-  \item Recognize the recurring HJB -\textgreater{} ansatz -\textgreater{} ODE -\textgreater{} solution pattern
-\end{itemize}\end{frame}
-\begin{frame}{Reading \& Problem Set 4 (Python/PyTorch)}
+  \item Theory week -- no Coincall data required.
+  \item Optional: estimate drift/vol from perp klines to parameterize Merton.
+\end{itemize}
+\vspace{2pt}\tiny\textit{Cross-check exact paths at https://docs.coincall.com/}
+\end{frame}
+
+\begin{frame}[fragile]{Code --- week4\_merton.py}
+\begin{lstlisting}
+import torch
+# Merton under CARA, solved by backward value iteration on a wealth grid.
+w = torch.linspace(-5, 5, 401); dt = 1e-3; mu, r, sig, gam = 0.08, 0.02, 0.2, 1.0
+V = -torch.exp(-gam * w)                      # terminal utility
+for _ in range(1000):                         # march backward in time
+    # optimal risky holding pi* = (mu - r)/(gam*sig^2) is wealth-independent (CARA)
+    pi = (mu - r) / (gam * sig**2)
+    drift = (r*w + pi*(mu - r))
+    diff  = 0.5 * (pi*sig)**2
+    dV = torch.gradient(V, spacing=(w[1]-w[0]).item())[0]
+    d2V = torch.gradient(dV, spacing=(w[1]-w[0]).item())[0]
+    V = V + dt * (drift*dV + diff*d2V)
+print("pi* (constant in wealth):", (mu - r)/(gam*sig**2))
+\end{lstlisting}
+\end{frame}
+\begin{frame}{Reading}
 \begin{itemize}
-  \item Pham (2009) Ch. 3-4; Cartea-Jaikumar-Penalva Ch. 6
-  \item PS4: Merton CRRA/CARA, Almgren-Chriss, HJB-residual check
-\end{itemize}\end{frame}
+  \item Pham (2009), Ch. 3-4; Cartea-Jaikumar-Penalva, Ch. 6
+\end{itemize}
+\end{frame}
+
 \end{document}

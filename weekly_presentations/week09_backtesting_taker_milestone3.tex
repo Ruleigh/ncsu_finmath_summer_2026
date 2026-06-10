@@ -1,58 +1,103 @@
-\documentclass[aspectratio=169,11pt]{beamer}
+\documentclass[aspectratio=169,10pt]{beamer}
 \usetheme{default}
 \setbeamertemplate{navigation symbols}{}
-\usepackage{graphicx}
-\usepackage[T1]{fontenc}
-\definecolor{ncsured}{HTML}{CC0000}
-\definecolor{ncsudk}{HTML}{990000}
+\usepackage{graphicx}\usepackage[T1]{fontenc}\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\definecolor{ncsured}{HTML}{CC0000}\definecolor{ncsudk}{HTML}{990000}
+\definecolor{ncsugray}{HTML}{6D6D6D}\definecolor{ncsuteal}{HTML}{008473}
+\definecolor{codebg}{HTML}{F5F5F5}
 \setbeamercolor{structure}{fg=ncsured}
 \setbeamercolor{frametitle}{fg=white,bg=ncsured}
 \setbeamercolor{title}{fg=ncsudk}
 \setbeamercolor{itemize item}{fg=ncsured}
 \setbeamercolor{itemize subitem}{fg=ncsured}
 \setbeamerfont{frametitle}{series=\bfseries}
-\setbeamertemplate{frametitle}{%
-  \nointerlineskip\vskip2pt%
-  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=0.3cm]{frametitle}%
-  \bfseries\insertframetitle%
-  \end{beamercolorbox}}
-\setbeamertemplate{footline}{%
-  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
-  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 9 \hfill \insertframenumber%
-  \end{beamercolorbox}}}
+\setbeamertemplate{frametitle}{\nointerlineskip\vskip2pt%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=.3cm]{frametitle}%
+  \small\bfseries\insertframetitle\end{beamercolorbox}}
+\setbeamertemplate{footline}{\hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
+  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 9 \hfill \insertframenumber\end{beamercolorbox}}}
+\lstset{basicstyle=\ttfamily\scriptsize,backgroundcolor=\color{codebg},
+  keywordstyle=\color{ncsured},commentstyle=\color{ncsugray},
+  stringstyle=\color{ncsuteal},breaklines=true,columns=fullflexible,
+  showstringspaces=false,frame=single,rulecolor=\color{ncsugray}}
 
-\title{Week 9: Backtesting, Risk Analysis, and Taker Strategies}
-\subtitle{Assembling the full system -- Milestone 3 (with a Coincall guest session)}
+\title{Week 9: Backtesting, Risk Analysis \& Taker Strategies}
+\subtitle{Assembling the full system -- Milestone 3 (Coincall guest session)}
 \date{North Carolina State University \,\textbar\, Summer 2026}
 \titlegraphic{\includegraphics[width=4.2cm]{/Users/dendisuhubdy/Github/ncsu/assets/ncsu_logo.png}}
 \begin{document}
-\begin{frame}[plain]\titlepage
-\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  ·  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
+\begin{frame}[plain]\titlepage\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  |  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
 \begin{frame}{Learning Objectives}
 \begin{itemize}
-  \item Build an event-driven backtest for options market making
+  \item Build an event-driven options backtest
   \item Produce a full P\&L attribution and risk metrics
   \item Understand taker strategies and order-flow toxicity
-\end{itemize}\end{frame}
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Lecture 1: Backtest Architecture \& Risk}
 \begin{itemize}
   \item Event-driven simulation with deterministic replay
-  \item The fill simulator; state tracking of inventory and Greeks
-  \item Pitfalls: look-ahead bias, unrealistic fills, expiry handling
-  \item Sharpe/Calmar, drawdown, block-bootstrap confidence intervals
-\end{itemize}\end{frame}
+  \item Fill simulator; state of inventory and Greeks
+  \item Pitfalls: look-ahead, unrealistic fills, expiry handling
+  \item Sharpe with block-bootstrap confidence intervals
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Lecture 2 (Guest: Fenni Kang, Coincall): Taker Strategies}
 \begin{itemize}
   \item When and why takers cross the spread
   \item Signals behind aggressive flow: momentum, liquidations, news
-  \item Execution styles: sweep, TWAP/VWAP, iceberg-taking
-  \item What taker behaviour means for the maker's order-flow toxicity
-\end{itemize}\end{frame}
-\begin{frame}{Milestone 3 Deliverable}
+  \item What taker behaviour means for the maker's toxicity
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Illustration}
+\begin{center}\includegraphics[width=0.86\textwidth]{/Users/dendisuhubdy/Github/ncsu/weekly_presentations/figures/week09.png}\end{center}
+\end{frame}
+
+\section*{Derivation}
+\begin{frame}{Derivation \& Rationale}
+\[\widehat{SR}=\frac{\bar r}{s_r}\sqrt{252},\quad \text{CI via block bootstrap on } \{r_t\}\]
+
+\small\textbf{\color{ncsured}Why:} Daily Sharpe is annualized by $\sqrt{252}$, but a point estimate over a few months is noisy and serially correlated. We resample BLOCKS of returns (preserving autocorrelation) to get an honest confidence interval -- a high Sharpe with a wide CI is not a real edge.
+\end{frame}
+
+\begin{frame}{Getting the Data from Coincall}
 \begin{itemize}
-  \item Full multi-Greek backtest on 3 months of BTC \& ETH options
-  \item P\&L attribution sums to total within 1 bp; Sharpe with CI
-  \item Greek exposures bounded; drawdown forensic + taker analysis
-  \item Reproducible from config; report \textless{}= 20 pages
-\end{itemize}\end{frame}
+  \item Full options L2 + trades + perp + funding for 3 months:
+  \begin{itemize}\item \texttt{\small coincall\_btc\_options\_l2\_2025Q4.parquet / ...\_trades\_...}\end{itemize}
+  \begin{itemize}\item \texttt{\small coincall\_eth\_options\_l2\_2025Q4.parquet / ...\_trades\_...}\end{itemize}
+  \begin{itemize}\item \texttt{\small coincall\_btc\_eth\_perp\_l2\_2025Q4.parquet ; coincall\_funding\_rates\_...}\end{itemize}
+  \item Klines for regime context: GET /open/option/market/kline/history/v1/\{name\}?period=h1
+  \item Trade tape carries mark IV at trade -\textgreater{} calibrate the fill simulator
+\end{itemize}
+\vspace{2pt}\tiny\textit{Cross-check exact paths at https://docs.coincall.com/}
+\end{frame}
+
+\begin{frame}[fragile]{Code --- week9\_attribution.py}
+\begin{lstlisting}
+import numpy as np
+def attribute(spread, inventory, gamma, hedging):
+    total = spread + inventory + gamma + hedging
+    assert abs(total.sum() - (spread.sum()+inventory.sum()
+               +gamma.sum()+hedging.sum())) < 1e-6           # must sum to total
+    return dict(spread=spread, inventory=inventory, gamma=gamma,
+                hedging=hedging, total=total)
+
+def bootstrap_sharpe(r, block=5, n=2000, seed=0):
+    rng = np.random.default_rng(seed); T = len(r); out = []
+    for _ in range(n):
+        idx = (rng.integers(0, T-block, T//block)[:,None] + np.arange(block)).ravel()
+        s = r[idx]; out.append(s.mean()/s.std()*np.sqrt(252))
+    return np.percentile(out, [2.5, 50, 97.5])               # CI for the Sharpe
+\end{lstlisting}
+\end{frame}
+\begin{frame}{Reading}
+\begin{itemize}
+  \item Cartea et al., Ch. 10-11; Bailey-Lopez de Prado (2014); Lopez de Prado (2018)
+\end{itemize}
+\end{frame}
+
 \end{document}

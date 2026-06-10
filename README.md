@@ -33,8 +33,28 @@ if needed for reference.
 
 `weekly_presentations/` holds a student-facing deck for each of the 10
 weeks (Week 1 = introduction), as both a **PDF** (LaTeX Beamer) and a
-**PPTX** (NC State theme). Regenerate with `python build_weekly.py`
-followed by `pdflatex` on each `week*.tex`.
+**PPTX** (NC State theme). Each deck includes: learning objectives, the
+two lectures, an **illustration** (`weekly_presentations/figures/`),
+**Coincall data-acquisition documentation** (endpoints cross-checked
+against <https://docs.coincall.com/>), **associative starter Python code**,
+and — for math-heavy weeks (3, 4, 5, 6, 7, 8, 9, 10) — **derivation slides
+that explain *why* each equation is chosen**. Week 1 adds the
+student-requested timeline, grading walkthrough, data-sources discussion,
+and math-heavy resource list.
+
+Regenerate with:
+
+```sh
+python make_illustrations.py        # figures (tries Gemini, falls back to matplotlib)
+python build_weekly.py              # PPTX + Beamer .tex for all 10 weeks
+cd weekly_presentations && for t in week*.tex; do pdflatex "$t" && pdflatex "$t"; done
+```
+
+> Illustrations: `make_illustrations.py` attempts **Gemini** image
+> generation first and falls back to precise matplotlib diagrams. The
+> bundled figures are the matplotlib versions (the Gemini API key on hand
+> has no image-generation quota); swap in Gemini art by re-running once the
+> plan supports it.
 
 ## Key design points
 

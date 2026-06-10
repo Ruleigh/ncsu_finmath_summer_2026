@@ -1,58 +1,111 @@
-\documentclass[aspectratio=169,11pt]{beamer}
+\documentclass[aspectratio=169,10pt]{beamer}
 \usetheme{default}
 \setbeamertemplate{navigation symbols}{}
-\usepackage{graphicx}
-\usepackage[T1]{fontenc}
-\definecolor{ncsured}{HTML}{CC0000}
-\definecolor{ncsudk}{HTML}{990000}
+\usepackage{graphicx}\usepackage[T1]{fontenc}\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\definecolor{ncsured}{HTML}{CC0000}\definecolor{ncsudk}{HTML}{990000}
+\definecolor{ncsugray}{HTML}{6D6D6D}\definecolor{ncsuteal}{HTML}{008473}
+\definecolor{codebg}{HTML}{F5F5F5}
 \setbeamercolor{structure}{fg=ncsured}
 \setbeamercolor{frametitle}{fg=white,bg=ncsured}
 \setbeamercolor{title}{fg=ncsudk}
 \setbeamercolor{itemize item}{fg=ncsured}
 \setbeamercolor{itemize subitem}{fg=ncsured}
 \setbeamerfont{frametitle}{series=\bfseries}
-\setbeamertemplate{frametitle}{%
-  \nointerlineskip\vskip2pt%
-  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=0.3cm]{frametitle}%
-  \bfseries\insertframetitle%
-  \end{beamercolorbox}}
-\setbeamertemplate{footline}{%
-  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
-  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 7 \hfill \insertframenumber%
-  \end{beamercolorbox}}}
+\setbeamertemplate{frametitle}{\nointerlineskip\vskip2pt%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=.3cm]{frametitle}%
+  \small\bfseries\insertframetitle\end{beamercolorbox}}
+\setbeamertemplate{footline}{\hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
+  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 7 \hfill \insertframenumber\end{beamercolorbox}}}
+\lstset{basicstyle=\ttfamily\scriptsize,backgroundcolor=\color{codebg},
+  keywordstyle=\color{ncsured},commentstyle=\color{ncsugray},
+  stringstyle=\color{ncsuteal},breaklines=true,columns=fullflexible,
+  showstringspaces=false,frame=single,rulecolor=\color{ncsugray}}
 
-\title{Week 7: Fast Computation of Prices, Greeks, Implied Vol, and Surfaces}
+\title{Week 7: Fast Computation: Prices, Greeks, Implied Vol, Surfaces}
 \subtitle{The latency budget, in C++ via pybind11 -- Milestone 2}
 \date{North Carolina State University \,\textbar\, Summer 2026}
 \titlegraphic{\includegraphics[width=4.2cm]{/Users/dendisuhubdy/Github/ncsu/assets/ncsu_logo.png}}
 \begin{document}
-\begin{frame}[plain]\titlepage
-\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  ·  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
+\begin{frame}[plain]\titlepage\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  |  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
 \begin{frame}{Learning Objectives}
 \begin{itemize}
-  \item Implement characteristic-function pricers in C++ (COS, Carr-Madan)
-  \item Implement robust implied-vol inversion and surface revaluation
+  \item Implement COS / Carr-Madan pricers and robust implied-vol in C++
   \item Expose the C++ kernels to Python with pybind11
-\end{itemize}\end{frame}
-\begin{frame}{Lecture 1: CF Pricing \& Implied Vol in C++}
+  \item Validate Greeks against PyTorch autograd; hit the 5 ms budget
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Lecture 1: CF Pricing \& Implied Vol}
 \begin{itemize}
-  \item Characteristic functions under Black-Scholes and Heston
-  \item The Fang-Oosterlee COS method (the workhorse)
-  \item Robust implied-vol inversion: good guess + safeguarded Newton
-  \item Vectorizing a whole surface
-\end{itemize}\end{frame}
-\begin{frame}{Lecture 2: Binding C++ to Python with pybind11}
+  \item Characteristic functions: Black-Scholes and Heston
+  \item Fang-Oosterlee COS method (the workhorse)
+  \item Robust implied-vol inversion (good guess + safeguarded Newton)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Lecture 2: Binding C++ with pybind11}
 \begin{itemize}
-  \item How a pybind11 module is structured and built with CMake
-  \item Passing NumPy/PyTorch tensors with no copy (buffer protocol)
-  \item Releasing the GIL around the C++ hot loop
+  \item Structure a pybind11 module; build with CMake
+  \item Pass NumPy/PyTorch tensors with no copy (buffer protocol)
+  \item Release the GIL around the C++ hot loop
   \item PyTorch autograd is the REFERENCE for Greeks; C++ is the speed
-\end{itemize}\end{frame}
-\begin{frame}{Milestone 2 Deliverable}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Illustration}
+\begin{center}\includegraphics[width=0.86\textwidth]{/Users/dendisuhubdy/Github/ncsu/weekly_presentations/figures/week07.png}\end{center}
+\end{frame}
+
+\section*{Derivation}
+\begin{frame}{Derivation \& Rationale}
+\[C(K)=e^{-rT}\,\tfrac{1}{\pi}\!\int_0^\infty \mathrm{Re}\!\big[e^{-iu\ln K}\hat{\phi}(u)\big]\,du\]
+
+\small\textbf{\color{ncsured}Why:} Once we leave Black-Scholes (e.g. Heston), there is no closed-form price, but the characteristic function $\phi$ IS known. Pricing becomes a single Fourier integral -- this is why CF methods exist and why they are fast.
+\end{frame}
+
+\begin{frame}{Derivation \& Rationale}
+\[C \approx \sum_{n=0}^{N-1}{}' \mathrm{Re}\!\Big[\phi\!\big(\tfrac{n\pi}{b-a}\big)e^{-i n\pi\frac{a}{b-a}}\Big]V_n\]
+
+\small\textbf{\color{ncsured}Why:} The Fang-Oosterlee COS method replaces the integral with a cosine series that converges geometrically for smooth densities. We truncate $[a,b]$ from the cumulants, not by guessing -- that is what makes it reach $10^{-4}$ accuracy in microseconds.
+\end{frame}
+
+\begin{frame}{Getting the Data from Coincall}
 \begin{itemize}
-  \item C++ pricing/implied-vol/Greeks library, imported via pybind11
-  \item Full BTC surface (300-500 contracts) revalued under 5 ms
-  \item Greeks within 1e-4 of PyTorch autograd; pricing within 1e-4 of reference
-  \item Latency reported as a distribution, plus a BINDING.md explainer
-\end{itemize}\end{frame}
+  \item Inputs are the calibrated surface from Week 6 plus reference prices:
+  \begin{itemize}\item \texttt{\small coincall\_btc\_options\_chain\_snapshots\_2025Q4.parquet}\end{itemize}
+  \begin{itemize}\item \texttt{\small coincall\_calibrated\_svi\_surfaces\_2025Q4.parquet (baseline)}\end{itemize}
+  \begin{itemize}\item \texttt{\small coincall\_reference\_prices\_2025Q4.parquet (accuracy target, 1e-4)}\end{itemize}
+  \item Live mark/IV/Greeks for spot checks: GET /open/option/detail/v1/\{symbol\}
+\end{itemize}
+\vspace{2pt}\tiny\textit{Cross-check exact paths at https://docs.coincall.com/}
+\end{frame}
+
+\begin{frame}[fragile]{Code --- fastmm pybind11 module}
+\begin{lstlisting}
+// fastmm.cpp  (build with CMake + pybind11; import as `fastmm`)
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+namespace py = pybind11;
+
+double cos_price(double S, double K, double T, double r, double sigma);  // COS pricer
+
+py::array_t<double> price_surface(py::array_t<double> K, double S,
+                                  double T, double r, double sigma) {
+    auto k = K.unchecked<1>(); auto out = py::array_t<double>(k.shape(0));
+    auto o = out.mutable_unchecked<1>();
+    { py::gil_scoped_release nogil;                 // release GIL for the hot loop
+      for (py::ssize_t i = 0; i < k.shape(0); ++i)
+          o(i) = cos_price(S, k(i), T, r, sigma); }
+    return out;                                     // zero-copy back to NumPy
+}
+PYBIND11_MODULE(fastmm, m) { m.def("price_surface", &price_surface); }
+\end{lstlisting}
+\end{frame}
+\begin{frame}{Reading}
+\begin{itemize}
+  \item Carr-Madan (1999); Fang-Oosterlee (2008); Jaeckel (2015); pybind11 docs
+\end{itemize}
+\end{frame}
+
 \end{document}

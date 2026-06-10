@@ -1,64 +1,100 @@
-\documentclass[aspectratio=169,11pt]{beamer}
+\documentclass[aspectratio=169,10pt]{beamer}
 \usetheme{default}
 \setbeamertemplate{navigation symbols}{}
-\usepackage{graphicx}
-\usepackage[T1]{fontenc}
-\definecolor{ncsured}{HTML}{CC0000}
-\definecolor{ncsudk}{HTML}{990000}
+\usepackage{graphicx}\usepackage[T1]{fontenc}\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\definecolor{ncsured}{HTML}{CC0000}\definecolor{ncsudk}{HTML}{990000}
+\definecolor{ncsugray}{HTML}{6D6D6D}\definecolor{ncsuteal}{HTML}{008473}
+\definecolor{codebg}{HTML}{F5F5F5}
 \setbeamercolor{structure}{fg=ncsured}
 \setbeamercolor{frametitle}{fg=white,bg=ncsured}
 \setbeamercolor{title}{fg=ncsudk}
 \setbeamercolor{itemize item}{fg=ncsured}
 \setbeamercolor{itemize subitem}{fg=ncsured}
 \setbeamerfont{frametitle}{series=\bfseries}
-\setbeamertemplate{frametitle}{%
-  \nointerlineskip\vskip2pt%
-  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=0.3cm]{frametitle}%
-  \bfseries\insertframetitle%
-  \end{beamercolorbox}}
-\setbeamertemplate{footline}{%
-  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
-  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 2 \hfill \insertframenumber%
-  \end{beamercolorbox}}}
+\setbeamertemplate{frametitle}{\nointerlineskip\vskip2pt%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=.3cm]{frametitle}%
+  \small\bfseries\insertframetitle\end{beamercolorbox}}
+\setbeamertemplate{footline}{\hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
+  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 2 \hfill \insertframenumber\end{beamercolorbox}}}
+\lstset{basicstyle=\ttfamily\scriptsize,backgroundcolor=\color{codebg},
+  keywordstyle=\color{ncsured},commentstyle=\color{ncsugray},
+  stringstyle=\color{ncsuteal},breaklines=true,columns=fullflexible,
+  showstringspaces=false,frame=single,rulecolor=\color{ncsugray}}
 
 \title{Week 2: Foundations of Market Microstructure}
-\subtitle{From limit order books to the role of the market maker}
+\subtitle{From the limit order book to the role of the market maker}
 \date{North Carolina State University \,\textbar\, Summer 2026}
 \titlegraphic{\includegraphics[width=4.2cm]{/Users/dendisuhubdy/Github/ncsu/assets/ncsu_logo.png}}
 \begin{document}
-\begin{frame}[plain]\titlepage
-\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  ·  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
+\begin{frame}[plain]\titlepage\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  |  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
 \begin{frame}{Learning Objectives}
 \begin{itemize}
-  \item Reconstruct a limit order book from raw exchange events
-  \item Decompose the bid-ask spread into its three classical components
+  \item Reconstruct an L2 order book from Coincall data
+  \item Decompose the bid-ask spread (Roll, Glosten-Milgrom, Kyle)
   \item Explain the market maker as a continuous liquidity provider
-\end{itemize}\end{frame}
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Lecture 1: Order Book Mechanics}
 \begin{itemize}
   \item Order types: market, limit, IOC, post-only, hidden
   \item Price-time priority and the matching algorithm
-  \item L1 and L2 views (Coincall provides L2; there is no L3 feed); tick and lot size
-  \item Coincall architecture: contracts, fees, market-maker tiers
-\end{itemize}\end{frame}
+  \item L1 and L2 views (Coincall provides L2; there is no L3 / per-order feed)
+  \item Because data is L2, we model aggregate intensity, not queue position
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Lecture 2: Spread Decomposition}
 \begin{itemize}
-  \item Adverse selection, inventory, and order-processing costs
+  \item Adverse selection + inventory + order-processing costs
   \item Roll (1984): effective spread from trade prices
-  \item Glosten-Milgrom (1985): asymmetric information
-  \item Kyle (1985): the strategic informed trader
+  \item Glosten-Milgrom (1985): asymmetric information sets the spread
   \item Realized spread, effective spread, price impact
-\end{itemize}\end{frame}
-\begin{frame}{Recitation}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Illustration}
+\begin{center}\includegraphics[width=0.86\textwidth]{/Users/dendisuhubdy/Github/ncsu/weekly_presentations/figures/week02.png}\end{center}
+\end{frame}
+
+\begin{frame}{Getting the Data from Coincall}
 \begin{itemize}
-  \item Build an L2 order-book reconstructor in Python
-  \item Replay one hour of Coincall BTC-PERP events
-  \item Emit a CSV of mid-price, spread, and depth
-  \item Watch out: delete price levels that empty after a cancel
-\end{itemize}\end{frame}
-\begin{frame}{Reading \& Problem Set 2 (Python)}
+  \item Goal: pull a single option's order book and recent trades, build mid/spread.
+  \item Option order book (100 depth):  GET /open/option/order/orderbook/v1/\{symbol\}
+  \item Recent trades:                   GET /open/option/trade/lasttrade/v1/\{symbol\}
+  \item List symbols first:              GET /open/option/getInstruments/BTC
+  \item Response gives arrays of [price, size] for bids and asks -\textgreater{} aggregate (L2)
+  \item For replay/backtests use the provided Parquet L2 snapshots (1s for options)
+  \item Live updates: subscribe to the /options/orderbook WebSocket channel
+\end{itemize}
+\vspace{2pt}\tiny\textit{Cross-check exact paths at https://docs.coincall.com/}
+\end{frame}
+
+\begin{frame}[fragile]{Code --- week2\_orderbook.py}
+\begin{lstlisting}
+from coincall_client import signed_get   # from Week 1
+
+def l2_top_of_book(symbol, key, secret):
+    ob = signed_get(f"/open/option/order/orderbook/v1/{symbol}", {}, key, secret)
+    data = ob["data"]                       # confirm field names in the docs
+    bids = sorted(data["bids"], key=lambda x: -float(x[0]))
+    asks = sorted(data["asks"], key=lambda x:  float(x[0]))
+    best_bid, best_ask = float(bids[0][0]), float(asks[0][0])
+    mid    = 0.5 * (best_bid + best_ask)
+    spread = best_ask - best_bid
+    return mid, spread, best_bid, best_ask
+
+# For an offline backtest, replay the provided Parquet instead:
+#   import pandas as pd
+#   book = pd.read_parquet("coincall_btc_options_l2_2025Q4.parquet")
+#   book["mid"] = 0.5 * (book.bid_px_0 + book.ask_px_0)
+\end{lstlisting}
+\end{frame}
+\begin{frame}{Reading}
 \begin{itemize}
-  \item Cartea-Jaikumar-Penalva Ch. 1-3; Roll (1984); Glosten-Milgrom (1985)
-  \item PS2: order book, Roll estimator, Glosten-Milgrom, toxicity
-\end{itemize}\end{frame}
+  \item Cartea-Jaikumar-Penalva, Ch. 1-3; Roll (1984); Glosten-Milgrom (1985)
+\end{itemize}
+\end{frame}
+
 \end{document}

@@ -1,62 +1,137 @@
-\documentclass[aspectratio=169,11pt]{beamer}
+\documentclass[aspectratio=169,10pt]{beamer}
 \usetheme{default}
 \setbeamertemplate{navigation symbols}{}
-\usepackage{graphicx}
-\usepackage[T1]{fontenc}
-\definecolor{ncsured}{HTML}{CC0000}
-\definecolor{ncsudk}{HTML}{990000}
+\usepackage{graphicx}\usepackage[T1]{fontenc}\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\definecolor{ncsured}{HTML}{CC0000}\definecolor{ncsudk}{HTML}{990000}
+\definecolor{ncsugray}{HTML}{6D6D6D}\definecolor{ncsuteal}{HTML}{008473}
+\definecolor{codebg}{HTML}{F5F5F5}
 \setbeamercolor{structure}{fg=ncsured}
 \setbeamercolor{frametitle}{fg=white,bg=ncsured}
 \setbeamercolor{title}{fg=ncsudk}
 \setbeamercolor{itemize item}{fg=ncsured}
 \setbeamercolor{itemize subitem}{fg=ncsured}
 \setbeamerfont{frametitle}{series=\bfseries}
-\setbeamertemplate{frametitle}{%
-  \nointerlineskip\vskip2pt%
-  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=0.3cm]{frametitle}%
-  \bfseries\insertframetitle%
-  \end{beamercolorbox}}
-\setbeamertemplate{footline}{%
-  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
-  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 3 \hfill \insertframenumber%
-  \end{beamercolorbox}}}
+\setbeamertemplate{frametitle}{\nointerlineskip\vskip2pt%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=.3cm]{frametitle}%
+  \small\bfseries\insertframetitle\end{beamercolorbox}}
+\setbeamertemplate{footline}{\hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
+  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 3 \hfill \insertframenumber\end{beamercolorbox}}}
+\lstset{basicstyle=\ttfamily\scriptsize,backgroundcolor=\color{codebg},
+  keywordstyle=\color{ncsured},commentstyle=\color{ncsugray},
+  stringstyle=\color{ncsuteal},breaklines=true,columns=fullflexible,
+  showstringspaces=false,frame=single,rulecolor=\color{ncsugray}}
 
 \title{Week 3: The Avellaneda-Stoikov Model}
-\subtitle{A worked example of optimal market making via stochastic control}
+\subtitle{Optimal market making via stochastic control -- derived from scratch}
 \date{North Carolina State University \,\textbar\, Summer 2026}
 \titlegraphic{\includegraphics[width=4.2cm]{/Users/dendisuhubdy/Github/ncsu/assets/ncsu_logo.png}}
 \begin{document}
-\begin{frame}[plain]\titlepage
-\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  ·  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
+\begin{frame}[plain]\titlepage\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  |  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
 \begin{frame}{Learning Objectives}
 \begin{itemize}
-  \item Set up the Avellaneda-Stoikov control problem with CARA utility
-  \item Understand the HJB equation and its reduction via the ansatz
-  \item Interpret the reservation price and optimal half-spread
-\end{itemize}\end{frame}
-\begin{frame}{Lecture 1: Setup and Dynamics}
+  \item Set up the Avellaneda-Stoikov control problem
+  \item Follow the HJB derivation and understand every modeling choice
+  \item Interpret the reservation price and the optimal half-spread
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Lecture 1: Setup \& Dynamics}
 \begin{itemize}
-  \item Mid-price as arithmetic Brownian motion (chosen for tractability)
-  \item Poisson order flow with intensity lambda(d) = A exp(-kappa d)
-  \item Wealth and inventory dynamics under continuous quoting
-  \item Exponential (CARA) utility decouples value from wealth
-\end{itemize}\end{frame}
-\begin{frame}{Lecture 2: HJB and Closed-Form Quotes}
+  \item Mid-price: dS\_t = sigma dW\_t  (arithmetic Brownian motion)
+  \item Fill intensity: lambda(delta) = A exp(-kappa delta)
+  \item Wealth from fills; inventory q jumps by +/-1 on a fill
+  \item Exponential (CARA) utility of terminal wealth
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Lecture 2: HJB, Ansatz, Closed Form}
 \begin{itemize}
-  \item Dynamic programming principle -\textgreater{} HJB equation
-  \item Separation ansatz V = -exp(-gamma(x+qS)) theta(t,q)
-  \item Reservation price r = S - q gamma sigma\textasciicircum{}2 (T-t)
-  \item Half-spread = (1/gamma) ln(1+gamma/kappa) + (gamma sigma\textasciicircum{}2 / 2)(T-t)
-\end{itemize}\end{frame}
-\begin{frame}{Recitation}
+  \item Dynamic programming -\textgreater{} HJB partial differential equation
+  \item Separation ansatz collapses HJB to ODEs in inventory
+  \item Asymptotic (long-horizon) closed-form quotes
+  \item Reservation price skews quotes against inventory
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Illustration}
+\begin{center}\includegraphics[width=0.86\textwidth]{/Users/dendisuhubdy/Github/ncsu/weekly_presentations/figures/week03.png}\end{center}
+\end{frame}
+
+\section*{Derivation}
+\begin{frame}{Derivation \& Rationale}
+\[dS_t = \sigma\, dW_t\]
+
+\small\textbf{\color{ncsured}Why:} Arithmetic (not geometric) Brownian motion is chosen because over a short market-making horizon price changes are small and roughly additive; it keeps the HJB linear in $S$ and makes the cash dynamics exact.
+\end{frame}
+
+\begin{frame}{Derivation \& Rationale}
+\[\lambda(\delta) = A\, e^{-\kappa \delta}\]
+
+\small\textbf{\color{ncsured}Why:} Fill intensity decays with quote distance $\delta$. The exponential form is the simplest law consistent with 'further from mid $\Rightarrow$ fewer fills'; $A$ sets the base rate, $\kappa$ the decay. It also yields a closed-form optimum.
+\end{frame}
+
+\begin{frame}{Derivation \& Rationale}
+\[\max\ \mathbb{E}\!\left[-e^{-\gamma\,(X_T + q_T S_T)}\right]\]
+
+\small\textbf{\color{ncsured}Why:} CARA (exponential) utility is used because constant absolute risk aversion makes the value function factor out wealth, so the optimal quotes do not depend on the cash level -- exactly what we want for a market maker.
+\end{frame}
+
+\begin{frame}{Derivation \& Rationale}
+\[\partial_t V + \tfrac12\sigma^2 \partial_{SS} V + \max_{\delta^b}\lambda(\delta^b)\big[V(q{+}1,x{-}S{+}\delta^b)-V\big]+ \max_{\delta^a}\lambda(\delta^a)\big[V(q{-}1,x{+}S{+}\delta^a)-V\big]=0\]
+
+\small\textbf{\color{ncsured}Why:} The HJB equation: the diffusion term prices inventory risk; each $\max$ term is the dealer optimally choosing the bid/ask offset, trading fill probability against captured spread.
+\end{frame}
+
+\begin{frame}{Derivation \& Rationale}
+\[V(t,x,S,q) = -e^{-\gamma(x+qS)}\,\theta(t,q)\]
+
+\small\textbf{\color{ncsured}Why:} This ansatz is not a guess from nowhere: under CARA $+$ arithmetic dynamics the value function inherits a multiplicative structure across $(x, qS)$, so all the wealth/price dependence is exponential and only $\theta(t,q)$ remains to solve.
+\end{frame}
+
+\begin{frame}{Derivation \& Rationale}
+\[r(t,q) = S - q\,\gamma\,\sigma^2 (T-t)\]
+
+\small\textbf{\color{ncsured}Why:} The reservation (indifference) price: it sits BELOW mid when you are long ($q>0$) so you quote to sell down inventory. The skew scales with risk aversion $\gamma$, variance $\sigma^2$, and time left -- more risk $\Rightarrow$ more skew.
+\end{frame}
+
+\begin{frame}{Derivation \& Rationale}
+\[\delta^* = \tfrac{1}{\gamma}\ln\!\big(1+\tfrac{\gamma}{\kappa}\big) + \tfrac{\gamma\sigma^2}{2}(T-t)\]
+
+\small\textbf{\color{ncsured}Why:} The optimal half-spread = an order-flow term $\tfrac1\gamma\ln(1+\gamma/\kappa)$ (how hard fills are to get) plus an inventory-risk term $\tfrac{\gamma\sigma^2}{2}(T-t)$. You widen when risk-averse, when volatile, and when far from the horizon.
+\end{frame}
+
+\begin{frame}{Getting the Data from Coincall}
 \begin{itemize}
-  \item Implement the closed-form quotes in PyTorch
-  \item Visualize reservation price and spread vs. inventory
-  \item Run a risk-aversion (gamma) sensitivity sweep
-\end{itemize}\end{frame}
-\begin{frame}{Reading \& Problem Set 3 (Python/PyTorch)}
+  \item This week uses simulated dynamics (no live data needed).
+  \item For realistic sigma, estimate it from Coincall perp klines:
+  \begin{itemize}\item \texttt{\small GET /open/option/market/kline/history/v1/\{name\}?period=m1  (or futures klines)}\end{itemize}
+  \item You will calibrate A, kappa from real fills in Week 5.
+\end{itemize}
+\vspace{2pt}\tiny\textit{Cross-check exact paths at https://docs.coincall.com/}
+\end{frame}
+
+\begin{frame}[fragile]{Code --- week3\_as\_quotes.py}
+\begin{lstlisting}
+import torch
+
+def as_quotes(S, q, gamma, sigma, kappa, tau):
+    """Asymptotic Avellaneda-Stoikov bid/ask. Vectorized over inventory q."""
+    reservation = S - q * gamma * sigma**2 * tau
+    half_spread = (1.0/gamma) * torch.log1p(gamma/kappa) \
+                  + 0.5 * gamma * sigma**2 * tau
+    return reservation - half_spread, reservation + half_spread  # bid, ask
+
+S = torch.tensor(100.0); q = torch.arange(-10, 11).float()
+bid, ask = as_quotes(S, q, gamma=0.1, sigma=2.0, kappa=1.5, tau=1.0)
+print("inventory ->", q.tolist())
+print("bid       ->", bid.round(decimals=2).tolist())
+\end{lstlisting}
+\end{frame}
+\begin{frame}{Reading}
 \begin{itemize}
-  \item Avellaneda-Stoikov (2008); Cartea-Jaikumar-Penalva Ch. 10
-  \item PS3: ODE solver, closed-form quotes, simulation, gamma sweep
-\end{itemize}\end{frame}
+  \item Avellaneda-Stoikov (2008); Cartea-Jaikumar-Penalva, Ch. 10
+\end{itemize}
+\end{frame}
+
 \end{document}

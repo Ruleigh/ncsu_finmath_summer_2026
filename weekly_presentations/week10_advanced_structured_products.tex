@@ -1,58 +1,94 @@
-\documentclass[aspectratio=169,11pt]{beamer}
+\documentclass[aspectratio=169,10pt]{beamer}
 \usetheme{default}
 \setbeamertemplate{navigation symbols}{}
-\usepackage{graphicx}
-\usepackage[T1]{fontenc}
-\definecolor{ncsured}{HTML}{CC0000}
-\definecolor{ncsudk}{HTML}{990000}
+\usepackage{graphicx}\usepackage[T1]{fontenc}\usepackage{amsmath,amssymb}
+\usepackage{listings}
+\definecolor{ncsured}{HTML}{CC0000}\definecolor{ncsudk}{HTML}{990000}
+\definecolor{ncsugray}{HTML}{6D6D6D}\definecolor{ncsuteal}{HTML}{008473}
+\definecolor{codebg}{HTML}{F5F5F5}
 \setbeamercolor{structure}{fg=ncsured}
 \setbeamercolor{frametitle}{fg=white,bg=ncsured}
 \setbeamercolor{title}{fg=ncsudk}
 \setbeamercolor{itemize item}{fg=ncsured}
 \setbeamercolor{itemize subitem}{fg=ncsured}
 \setbeamerfont{frametitle}{series=\bfseries}
-\setbeamertemplate{frametitle}{%
-  \nointerlineskip\vskip2pt%
-  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=0.3cm]{frametitle}%
-  \bfseries\insertframetitle%
-  \end{beamercolorbox}}
-\setbeamertemplate{footline}{%
-  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
-  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 10 \hfill \insertframenumber%
-  \end{beamercolorbox}}}
+\setbeamertemplate{frametitle}{\nointerlineskip\vskip2pt%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1ex,leftskip=.3cm]{frametitle}%
+  \small\bfseries\insertframetitle\end{beamercolorbox}}
+\setbeamertemplate{footline}{\hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.2ex,dp=1ex,leftskip=.3cm,rightskip=.3cm]{}%
+  \tiny Optimal Market Making for Cryptocurrency Options \hfill Week 10 \hfill \insertframenumber\end{beamercolorbox}}}
+\lstset{basicstyle=\ttfamily\scriptsize,backgroundcolor=\color{codebg},
+  keywordstyle=\color{ncsured},commentstyle=\color{ncsugray},
+  stringstyle=\color{ncsuteal},breaklines=true,columns=fullflexible,
+  showstringspaces=false,frame=single,rulecolor=\color{ncsugray}}
 
-\title{Week 10: Advanced Avellaneda-Stoikov, Structured Products, and Final Presentations}
-\subtitle{Extensions, the corporate view, and communicating results (Coincall guest session)}
+\title{Week 10: Advanced Avellaneda-Stoikov, Structured Products \& Finals}
+\subtitle{Extensions, the corporate view, and communicating results}
 \date{North Carolina State University \,\textbar\, Summer 2026}
 \titlegraphic{\includegraphics[width=4.2cm]{/Users/dendisuhubdy/Github/ncsu/assets/ncsu_logo.png}}
 \begin{document}
-\begin{frame}[plain]\titlepage
-\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  ·  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
+\begin{frame}[plain]\titlepage\begin{center}\tiny Industry Mentor: Dendi Suhubdy (Bitwyre)  |  Guest: Fenni Kang (Coincall)\end{center}\end{frame}
 \begin{frame}{Learning Objectives}
 \begin{itemize}
   \item Implement one advanced Avellaneda-Stoikov extension
-  \item Understand how corporates use options via structured products
+  \item Understand corporate structured products
   \item Write and present a research-grade report
-\end{itemize}\end{frame}
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Lecture 1: Advanced Extensions}
 \begin{itemize}
-  \item Multi-asset market making across BTC and ETH options
+  \item Multi-asset market making (BTC + ETH, correlated)
   \item Adverse-selection-aware and signal-driven quoting
-  \item Discrete-inventory formulations
-  \item Robust optimization with a worst-case inventory penalty
-\end{itemize}\end{frame}
+  \item Robust optimization: worst-case inventory penalty
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Lecture 2 (Guest: Fenni Kang, Coincall): Structured Products}
 \begin{itemize}
-  \item Collars to fix a price band on a holding
-  \item Accumulators / decumulators for staged accumulation or liquidation
+  \item Collars to fix a price band
+  \item Accumulators / decumulators for staged flow
   \item Coupon / yield-enhancement products
-  \item How structured-product flow lands on the market-maker's book
-\end{itemize}\end{frame}
-\begin{frame}{Final Deliverables}
+  \item How that flow lands on the market-maker's book
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Illustration}
+\begin{center}\includegraphics[width=0.86\textwidth]{/Users/dendisuhubdy/Github/ncsu/weekly_presentations/figures/week10.png}\end{center}
+\end{frame}
+
+\section*{Derivation}
+\begin{frame}{Derivation \& Rationale}
+\[\min_{\delta}\ \max_{\Sigma\in\mathcal{U}}\ \Big\{\text{spread P\&L} - \tfrac12 q^{\mathsf T}\Sigma q\Big\}\]
+
+\small\textbf{\color{ncsured}Why:} Robust market making: we do not trust a single covariance estimate $\Sigma$, so we optimize against the WORST case over an uncertainty set $\mathcal{U}$. This widens quotes exactly where parameter risk is highest -- a principled cure for over-fitting the penalty matrix.
+\end{frame}
+
+\begin{frame}{Getting the Data from Coincall}
 \begin{itemize}
-  \item One-page extension proposal (day one)
-  \item PyTorch implementation on the milestone infrastructure
-  \item Quantitative comparison vs. the Week-9 baseline
-  \item Final report (\textless{}= 30 pages) and 20-minute presentation
-\end{itemize}\end{frame}
+  \item Multi-asset extension needs BTC and ETH chains together:
+  \begin{itemize}\item \texttt{\small GET /open/option/get/v1/BTC   and   GET /open/option/get/v1/ETH}\end{itemize}
+  \item Correlation from perp klines (BTC vs ETH) over your backtest window
+  \item Reuse all Milestone-3 Parquet datasets; no new sources required
+\end{itemize}
+\vspace{2pt}\tiny\textit{Cross-check exact paths at https://docs.coincall.com/}
+\end{frame}
+
+\begin{frame}[fragile]{Code --- week10\_collar.py}
+\begin{lstlisting}
+import numpy as np
+def collar_payoff(S, spot=100.0, put_K=90.0, call_K=110.0):
+    """Long underlying + long put(put_K) + short call(call_K): a fixed band."""
+    return (S - spot) + np.maximum(put_K - S, 0.0) - np.maximum(S - call_K, 0.0)
+
+S = np.linspace(60, 140, 9)
+print(dict(zip(S.round(0), collar_payoff(S).round(1))))   # capped above, floored below
+\end{lstlisting}
+\end{frame}
+\begin{frame}{Reading}
+\begin{itemize}
+  \item Gueant (2016) [chosen extension]; El Aoud-Abergel (2015); +1 paper of your choice
+\end{itemize}
+\end{frame}
+
 \end{document}
