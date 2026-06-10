@@ -1,0 +1,10 @@
+# Python dependencies for the course code.
+numpy
+scipy
+pandas
+pyarrow
+torch
+matplotlib
+requests
+pybind11
+pytest
